@@ -29,3 +29,10 @@ Requires a Linux environment with 32-bit compilation support (`gcc-multilib`).
 ```bash
 gcc -m32 -no-pie task_1d.s -o task_1d
 gcc -m32 -no-pie task_2d.s -o task_2d
+```
+
+### 2. Execute with Input Redirection
+```bash
+./task_1d < input.txt
+./task_2d < input.txt
+```
