@@ -1,35 +1,31 @@
-# Minimal OS Storage Management System (x86 Assembly)
+# OS Storage Management System (x86 Assembly)
 
-## 📌 Project Overview
-This project is a low-level implementation of a **storage management component** for a minimal operating system. Developed in **x86 Assembly (AT&T syntax)**, the system manages file allocation, retrieval, and optimization on a simulated storage device. It handles complex memory operations such as contiguous allocation and defragmentation, mimicking the core behavior of a file system driver.
+Low-level implementation of a contiguous block storage manager written in 32-bit x86 Assembly (AT&T syntax). Built for the Computer Systems Architecture (ASC) course at the Faculty of Mathematics and Computer Science, University of Bucharest.
 
-The project was developed as part of the **Computer Systems Architecture (ASC)** curriculum at the **University of Bucharest**, Faculty of Mathematics and Computer Science.
+The program simulates file allocation, lookup, deletion, and compaction on a fixed-size block device, supporting both unidimensional (1D) and bidimensional (2D) memory layouts.
 
-## 🛠️ Technical Features
+## Storage Models & Constraints
 
-### 1. Memory Models
-* **Linear (1D) Memory:** Simulated 8MB storage device partitioned into 1024 blocks of 8kB each.
-* **Bidimensional (2D) Memory:** An expanded matrix-based storage model (8MB x 8MB) where a contiguous section is considered across lines.
+- **Block Granularity:** Each storage block represents `8 KB`.
+- **1D Linear Layout:** `8 MB` total capacity partitioned into `1,024` contiguous blocks (`0` to `1023`).
+- **2D Matrix Layout:** `1,024 x 1,024` grid of `8 KB` blocks (`8 MB x 8 MB` address space). Files must fit contiguously within a single row without wrapping across lines.
+- **File Descriptors:** Integer IDs in the range `1..255` (`0` denotes a free block).
+- **Minimum Allocation:** Every file occupies at least `2` blocks (`ceil(size_kb / 8)`).
+- **Allocation Strategy:** First-fit search scanning from index `0` (top-left in 2D) for the first contiguous free interval large enough to hold the file.
 
-### 2. Core Operations
-* **ADD:** Allocates files contiguously based on their size in kB. It calculates the necessary number of blocks and finds the first available interval.
-* **GET:** Retrieves the exact block intervals (start/end) for a specific unique File ID (Descriptor).
-* **DELETE:** Removes a file by its ID and frees the occupied blocks by resetting their descriptor value to 0.
-* **DEFRAGMENTATION:** A memory optimization routine that reorders stored files to eliminate gaps, moving all free space to the end of the memory while maintaining file continuity.
-* **CONCRETE (2D only):** Interacts with the disk by scanning an absolute file path and allocating files based on their actual metadata (File ID modulo 256 and size in kB).
+## Supported Operations
 
-## 💻 Technical Stack
-* **Language:** x86 Assembly (32-bit).
-* **Syntax:** AT&T.
-* **OS Environment:** Linux / Unix-based systems.
-* **Key Concepts:** Manual memory management, hardware-level logic, CPU register optimization, and STDIN/STDOUT redirection.
+- **`ADD`** — Reads a file descriptor and size in KB, computes the required block count, and allocates the first available contiguous interval. Outputs the allocated start/end indices (or `(0, 0)` if insufficient contiguous space exists).
+- **`GET`** — Searches storage for a given descriptor and prints its start and end block coordinates, or `(0, 0)` if the descriptor is not present.
+- **`DELETE`** — Locates all blocks belonging to a given descriptor and resets them to `0`, then prints the updated intervals of remaining files.
+- **`DEFRAGMENTATION`** — Compacts all allocated files toward the beginning of the storage space to eliminate external fragmentation while preserving relative file order and row-level contiguity (in 2D mode).
+- **`CONCRETE` (2D only)** — Accepts an absolute directory path, traverses its entries using Linux system calls, extracts each file's descriptor (`fd % 256`) and size in KB from file metadata, and allocates them into the 2D storage grid.
 
-## 📊 Implementation Details
-* **File Descriptors:** Supports unique IDs between 1 and 255.
-* **Storage Constraints:** Files require a minimum of 2 blocks for storage.
-* **Allocation Logic:** Uses a "First Fit" approach, searching from left to right for the first available contiguous space.
+## Build & Run
 
-## 🚀 How to Run
-To test the system using an input file (e.g., `input.txt`), use the following command:
+Requires a Linux environment with 32-bit compilation support (`gcc-multilib`).
+
+### 1. Compile (32-bit x86)
 ```bash
-./task_name < input.txt
+gcc -m32 -no-pie task_1d.s -o task_1d
+gcc -m32 -no-pie task_2d.s -o task_2d
